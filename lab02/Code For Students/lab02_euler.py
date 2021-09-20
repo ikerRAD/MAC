@@ -15,7 +15,7 @@ def graph_has_Eulerian_circuit(g):
        if(not i):
            return i
    return True
-  
+  #El coste del algoritmo es igual al número de aristas posibles en un grafo ya que las recorre todas; es decir, O(n^2)
 
 def test():
     g1 = [[1, 1, 1, 0, 0],
