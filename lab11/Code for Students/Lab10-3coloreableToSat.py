@@ -1,6 +1,7 @@
 from tools import list_minisat2list_our_sat
-
+from time import time
 from colour_tools import fromAdjacencyToGX, visualizeGXGraph
+from satsolver import solve_SAT
 
 def list2dimacs(my_list):
         return ('\n'.join(' '.join(map(str,sl)) for sl in my_list)) 
@@ -50,7 +51,7 @@ def reduce_3colorable_to_SAT(graph):
          
 def test():   
      
-    g1 = [[1, 1, 1, 0],
+    '''g1 = [[1, 1, 1, 0],
           [1, 1, 1, 1],
           [1, 1, 1, 0],
           [0, 1, 0, 1]]
@@ -167,7 +168,45 @@ def test():
     
     graph = fromAdjacencyToGX(g6)
     print(graph)
-    visualizeGXGraph(graph, "g6.txt")
+    visualizeGXGraph(graph, "g6.txt")'''
+    
+    tupla1 = list_minisat2list_our_sat ('g1.txt')
+    tupla2 = list_minisat2list_our_sat ('g2.txt')    
+    tupla3 = list_minisat2list_our_sat ('g3.txt')
+    tupla4 = list_minisat2list_our_sat ('g4.txt')
+    tupla5 = list_minisat2list_our_sat ('g5.txt')
+    tupla6 = list_minisat2list_our_sat ('g6.txt')
+    
+    start_time = time()
+    print(solve_SAT(tupla1[0], tupla1[1]))
+    elapsed_time = time() - start_time   
+    print("Elapsed time 1 : %0.10f seconds." % elapsed_time) 
+    
+    start_time = time()
+    print(solve_SAT(tupla2[0], tupla2[1]))
+    elapsed_time = time() - start_time   
+    print("Elapsed time 2 : %0.10f seconds." % elapsed_time) 
+    
+    start_time = time()
+    print(solve_SAT(tupla3[0], tupla3[1]))
+    elapsed_time = time() - start_time   
+    print("Elapsed time 3 : %0.10f seconds." % elapsed_time) 
+    
+    start_time = time()
+    print(solve_SAT(tupla4[0], tupla4[1]))
+    elapsed_time = time() - start_time   
+    print("Elapsed time 4 : %0.10f seconds." % elapsed_time) 
+    
+    start_time = time()
+    print(solve_SAT(tupla5[0], tupla5[1]))
+    elapsed_time = time() - start_time   
+    print("Elapsed time 5 : %0.10f seconds." % elapsed_time) 
+    
+    start_time = time()
+    print(solve_SAT(tupla6[0], tupla6[1]))
+    elapsed_time = time() - start_time   
+    print("Elapsed time 6 : %0.10f seconds." % elapsed_time) 
+    
     
 test()
     

@@ -17,13 +17,16 @@ def solitaria(claus, assign):
 def unica(num, claus, assign):
     modif = False
     num_apariciones = [0]*(num+1)
+    #num_apariciones_iguales = [0]*(num+1)
     
     for clause in claus:
         for lit in clause:
             num_apariciones[abs(lit)] = num_apariciones[abs(lit)] + 1
+            #num_apariciones_iguales[abs(lit)] = num_apariciones_iguales[abs(lit)] + int(lit/abs(lit))
     
     for i in range(1, len(num_apariciones)):
-        if num_apariciones[i] == 1:
+        #si aparece una vez o todas sus apariciones son con el mismo signo
+        if num_apariciones[i] == 1: #or abs(num_apariciones_iguales[i]) == num_apariciones[i]:
             #buscamos la aparición y cambiamos los valores
             for clause in claus:
                 if -i in clause:
@@ -124,69 +127,41 @@ def copyclauses(m):
 
 
 def busqueda(num_variables, clauses, assignment):
-    #buscamos el primer literal no asignado
-    lit = -1
-    true = 1
-    false = 0
-        
-    for clause in clauses:
-        for litt in clause:
-            if assignment[abs(litt)] == None:
-                lit = abs(litt)
-                if litt<0:
-                    true = 0
-                    false = 1
-                break
-        if lit != -1:
-            break
     
-        
-    #si todo está asignado
-    if(lit == -1):
+    preproc_clauses, preproc_assignment = sat_preprocessing(num_variables, clauses, assignment)
+    
+    if preproc_clauses == []:
+        return preproc_assignment
+    elif preproc_clauses == ([[1], [-1]]):
         return "UNSATISFIABLE"
     
+    #siempre estará a None
+    
+    lit = preproc_clauses[0][0]
+   
     #copiamos para no pasar valores por referencia
-    assignment1 = copy(assignment)
-    assignment1[lit] = true
-    clauses1 = copyclauses(clauses)
-    
-    assignment2 = copy(assignment)
-    assignment2[lit] = false
-    clauses2 = copyclauses(clauses)
-    
-    #una vez hecho un cambio, preprocesamos por si ha habido 'daños colaterales'
-    #ya que el preproceso es rápido y solo efectua movimientos correctos dependiendo del contexto
-    
-    p_clauses, p_assign = sat_preprocessing(num_variables, clauses1, assignment1)
-    
-    #vemos que tal nos ha ido
-    if not p_clauses:
-        return p_assign
-    #si no nos ha ido bien pero tampoco mal, seguimos por la misma rama
-    elif p_clauses != ([[1], [-1]]):
-        res1 = busqueda(num_variables, p_clauses, p_assign)
-    #si nos ha ido mal ponemos res1 a unsatifiable
+    assignment1 = copy(preproc_assignment)
+    if lit<0:
+        assignment1[-lit] = 0
     else:
-        res1 = "UNSATISFIABLE"
+        assignment1[lit] = 1
+    clauses1 = copyclauses(preproc_clauses)
+    
+    res1 = busqueda(num_variables, clauses1, assignment1)
         
-    #vemos que hay en res1, si es distinto de UNSATISFIABLE, es una solución
     if res1 != "UNSATISFIABLE":
         return res1
     
-    #si llegamos aquí es que la rama anterior no tiene solución así que seguimos por la
-    #segunda rama
-
-    p_clauses, p_assign = sat_preprocessing(num_variables, clauses2, assignment2)
-    
-    #volvemos a ver que tal de la misma manera
-    if not p_clauses:
-        return p_assign
-    
-    elif p_clauses != ([[1], [-1]]):
-        return busqueda(num_variables, p_clauses, p_assign)
+    if lit<0:
+        preproc_assignment[-lit] = 1
     else:
-        return "UNSATISFIABLE"
+        preproc_assignment[lit] = 0
+
     
+    return busqueda(num_variables, preproc_clauses, preproc_assignment)
+    
+    
+
 #conviene hacer preprocessing porque en el caso de sat no es muy costoso y siempre nos acercará más a la
 #solución. Así que nos basaremos en hacer preprocessing y cuando el mismo se quede estancado, lo apoyaremos con alguna asignación
 #abriendo un arbol. De esta manera también, nos encargamos de minimizar el arbol de búsqueda ya que en cada rama purgamos
@@ -194,19 +169,16 @@ def busqueda(num_variables, clauses, assignment):
 def solve_SAT(num_variables, clauses):
 
    assignment = [None]*(num_variables+1)
-   proc_clauses, proc_assign = sat_preprocessing(num_variables, clauses, assignment)
-   if not proc_clauses:
-       return proc_assign
-   elif proc_clauses == ([[1], [-1]]):
-       return "UNSATISFIABLE"
-   else:
-       return busqueda(num_variables, proc_clauses, proc_assign)
+
+   return busqueda(num_variables, clauses, assignment)
+
+
 
 
     
 def test():
     ## Para probar el juego de pruebas
-    '''tupla1 = list_minisat2list_our_sat ('instancias/1-unsat.cnf')
+    tupla1 = list_minisat2list_our_sat ('instancias/1-unsat.cnf')
     tupla2 = list_minisat2list_our_sat ('instancias/2-sat.cnf')    
     tupla3 = list_minisat2list_our_sat ('instancias/3-sat.cnf')
     tupla4 = list_minisat2list_our_sat ('instancias/4-sat.cnf')
@@ -265,9 +237,9 @@ def test():
     start_time = time()
     print(solve_SAT(tupla10[0], tupla10[1]))
     elapsed_time = time() - start_time   
-    print("Elapsed time 10 : %0.10f seconds." % elapsed_time) '''
+    print("Elapsed time 10 : %0.10f seconds." % elapsed_time) 
     
-    clauses = [[-2, -3, -1], [3, -2, 1], [-3, 2, 1],
+    '''clauses = [[-2, -3, -1], [3, -2, 1], [-3, 2, 1],
                [2, -3, -1], [3, -2, 1], [3, -2, 1]]
     solutions = [[0, 0, 0, 0],
                  [0, 0, 1, 1],
@@ -337,7 +309,7 @@ def test():
     clauses = [[-6, -4, -2, 6], [-5], [7], [1, -3], 
                [1, -4, -1, -7], [-6, -1], [1], [-7]]
     
-    assert solve_SAT(7, clauses) == "UNSATISFIABLE" 
+    assert solve_SAT(7, clauses) == "UNSATISFIABLE" '''
 
     
     
